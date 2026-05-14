@@ -187,6 +187,7 @@ function fetchEntries() {
     return res.json();
   }).then(function(data) {
     if (Array.isArray(data)) return data;
+    if (data && Array.isArray(data.items)) return data.items;
     if (data && Array.isArray(data.record)) return data.record;
     return [];
   });
@@ -196,7 +197,7 @@ function putEntries(entries) {
   return fetch(BIN_URL, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY, 'X-Bin-Versioning': 'false' },
-    body: JSON.stringify(entries)
+    body: JSON.stringify({ items: entries })
   }).then(function(res) {
     if (!res.ok) return res.text().then(function(t) { throw new Error('HTTP ' + res.status + ' - ' + t); });
   });
