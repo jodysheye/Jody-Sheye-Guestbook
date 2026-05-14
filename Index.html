@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jody Sheye — Guestbook</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+```
+:root {
+  --bg: #faf8f4;
+  --ink: #1a1a18;
+  --muted: #888;
+  --border: #e0d9ce;
+  --mono: 'Courier New', monospace;
+  --serif: Georgia, 'Times New Roman', serif;
+}
+
+body { background: var(--bg); color: var(--ink); font-family: var(--serif); min-height: 100vh; }
+
+header {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border);
+}
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ink); }
+.dot.green { background: #4caf50; }
+.live-tag { font-size: 0.65rem; letter-spacing: 0.2em; font-family: var(--mono); color: var(--muted); }
+
+main { max-width: 480px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+h1 { font-size: 2.2rem; font-weight: normal; letter-spacing: -0.02em; line-height: 1.1; }
+.subtitle { font-size: 0.85rem; color: var(--muted); margin-top: 0.4rem; font-family: var(--mono); letter-spacing: 0.08em; text-transform: uppercase; }
+
+.divider { border-top: 1px solid var(--border); margin: 1.75rem 0; }
+
+.field { margin-bottom: 1.4rem; }
+label { display: block; font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; font-family: var(--mono); color: #666; margin-bottom: 0.4rem; }
+.optional { color: #aaa; text-transform: none; letter-spacing: 0; font-family: var(--serif); font-size: 0.85em; }
+.hint { font-size: 0.78rem; color: #aaa; margin-bottom: 0.5rem; font-style: italic; }
+
+input, textarea {
+  width: 100%; padding: 0.7rem 0; font-size: 1rem; font-family: var(--serif);
+  border: none; border-bottom: 1px solid #ccc; background: transparent;
+  outline: none; color: var(--ink); transition: border-color 0.2s;
+}
+input:focus, textarea:focus { border-color: var(--ink); }
+input[type=number] { font-size: 1.4rem; letter-spacing: 0.05em; }
+textarea { resize: vertical; min-height: 72px; line-height: 1.5; }
+
+.chord-preview { margin-top: 0.4rem; font-size: 0.9rem; color: var(--muted); font-family: var(--mono); }
+
+.btn {
+  display: block; width: 100%; padding: 0.9rem;
+  background: var(--ink); color: var(--bg); border: none;
+  font-size: 0.85rem; letter-spacing: 0.12em; text-transform: uppercase;
+  font-family: var(--mono); cursor: pointer; transition: opacity 0.2s;
+}
+.btn:disabled { opacity: 0.5; cursor: default; }
+.btn:hover:not(:disabled) { opacity: 0.85; }
+
+.ghost-btn {
+  padding: 0.5rem 0.9rem; background: transparent; color: var(--muted);
+  border: 1px solid #ccc; font-size: 0.75rem; letter-spacing: 0.1em;
+  font-family: var(--mono); cursor: pointer; text-transform: uppercase;
+}
+.ghost-btn:hover { border-color: var(--ink); color: var(--ink); }
+.ghost-btn.danger { color: #c0392b; border-color: #c0392b; }
+
+.error { color: #c0392b; font-size: 0.82rem; margin-bottom: 0.75rem; font-family: var(--mono); }
+
+.social-links { display: flex; gap: 0.75rem; align-items: center; justify-content: center; margin-bottom: 2rem; }
+.social-links a { color: var(--muted); text-decoration: none; font-size: 0.78rem; letter-spacing: 0.08em; font-family: var(--mono); text-transform: uppercase; }
+.social-links a:hover { color: var(--ink); }
+.link-dot { color: #ccc; font-size: 0.7rem; }
+
+.switch-btn { background: none; border: none; color: #aaa; font-size: 0.75rem; font-family: var(--mono); cursor: pointer; letter-spacing: 0.08em; }
+.switch-btn:hover { color: var(--ink); }
+
+/* Success screen */
+.success-screen {
+  min-height: 100vh; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  background: var(--bg); padding: 2rem; text-align: center; gap: 0.75rem;
+}
+.checkmark { font-size: 2.5rem; }
+.thank-you { font-size: 1.8rem; font-weight: normal; letter-spacing: -0.02em; }
+.sub-text { color: var(--muted); font-size: 0.9rem; }
+
+/* Section title */
+.section-title { font-size: 0.78rem; letter-spacing: 0.15em; text-transform: uppercase; font-family: var(--mono); font-weight: normal; margin-bottom: 0.25rem; color: #444; }
+
+/* Chord row */
+.chord-row { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 0.75rem; }
+.chord-bubble { padding: 0.5rem 0.85rem; border: 1px solid var(--ink); font-size: 0.9rem; font-family: var(--mono); letter-spacing: 0.05em; }
+
+/* Entries */
+.entry-list { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.75rem; }
+.entry-card { padding: 0.85rem; border-left: 2px solid var(--border); padding-left: 1rem; }
+.entry-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.2rem; }
+.entry-name { font-size: 0.95rem; font-family: var(--serif); }
+.entry-chord { font-family: var(--mono); font-size: 0.85rem; color: var(--muted); border: 1px solid var(--border); padding: 0.1rem 0.4rem; }
+.entry-message { font-size: 0.85rem; color: #555; margin: 0.2rem 0; font-style: italic; line-height: 1.5; }
+.entry-meta { font-size: 0.72rem; color: #bbb; font-family: var(--mono); margin-top: 0.3rem; }
+
+/* QR */
+.qr-block { display: flex; gap: 1.25rem; align-items: flex-start; margin-top: 0.75rem; }
+.qr-box { border: 1px solid var(--border); flex-shrink: 0; display: inline-block; }
+.qr-url { font-size: 0.68rem; color: #aaa; font-family: var(--mono); word-break: break-all; line-height: 1.6; margin-bottom: 0.6rem; }
+
+/* Dashboard row */
+.dash-row { display: flex; justify-content: space-between; align-items: center; }
+
+/* Spinner */
+.spinner { display: flex; justify-content: center; padding: 2rem; }
+.spin { width: 24px; height: 24px; border: 2px solid var(--border); border-top-color: var(--ink); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* View */
+.view { display: none; }
+.view.active { display: block; }
+.success-screen { display: none; }
+.success-screen.active { display: flex; }
+```
+
+  </style>
+</head>
+<body>
+
+<!-- ═══ AUDIENCE VIEW ═══════════════════════════════════════════════════════ -->
+
+<div id="view-audience" class="view active">
+  <header>
+    <div class="dot"></div>
+    <span class="live-tag">LIVE</span>
+  </header>
+  <main>
+    <h1>Jody Sheye</h1>
+    <p class="subtitle">Guestbook</p>
+    <div class="divider"></div>
+
+```
+<div class="field">
+  <label>Your name</label>
+  <input id="a-name" type="text" placeholder="e.g. Maria" />
+</div>
+<div class="field">
+  <label>Leave a message <span class="optional">(optional)</span></label>
+  <textarea id="a-message" placeholder="Say something..."></textarea>
+</div>
+<div class="field">
+  <label>Give me a number — any number</label>
+  <p class="hint">It'll become a chord in tonight's set.</p>
+  <input id="a-number" type="number" placeholder="e.g. 42" oninput="previewChord()" />
+  <p class="chord-preview" id="chord-preview"></p>
+</div>
+
+<p class="error" id="a-error"></p>
+<button class="btn" id="a-submit" onclick="submitEntry()">Sign the Guestbook</button>
+
+<div class="divider"></div>
+<div class="social-links">
+  <a href="https://instagram.com" target="_blank">Instagram</a>
+  <span class="link-dot">·</span>
+  <a href="https://open.spotify.com" target="_blank">Spotify</a>
+  <span class="link-dot">·</span>
+  <a href="https://soundcloud.com" target="_blank">SoundCloud</a>
+</div>
+<button class="switch-btn" onclick="showView('performer')">Performer view →</button>
+```
+
+  </main>
+</div>
+
+<!-- ═══ SUCCESS SCREEN ══════════════════════════════════════════════════════ -->
+
+<div id="view-success" class="success-screen">
+  <div class="checkmark">✓</div>
+  <h2 class="thank-you">You're in the book.</h2>
+  <p class="sub-text" id="success-msg"></p>
+  <p class="sub-text" style="margin-top:0.5rem">Enjoy the show.</p>
+  <button class="ghost-btn" style="margin-top:1rem" onclick="resetAudience()">Sign again</button>
+</div>
+
+<!-- ═══ PERFORMER VIEW ══════════════════════════════════════════════════════ -->
+
+<div id="view-performer" class="view">
+  <header>
+    <div class="dot green"></div>
+    <span class="live-tag">PERFORMER</span>
+  </header>
+  <main>
+    <h1>Dashboard</h1>
+    <p class="subtitle" id="p-count">0 guests tonight</p>
+
+```
+<div class="divider"></div>
+
+<section>
+  <h2 class="section-title">Audience Link</h2>
+  <p class="hint">Scan to open the guestbook on any phone</p>
+  <div class="qr-block">
+    <div class="qr-box" id="qr-container"></div>
+    <div style="flex:1;min-width:0">
+      <p class="qr-url" id="qr-url-text"></p>
+      <button class="ghost-btn" onclick="copyLink()">Copy link</button>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section>
+  <h2 class="section-title">Chord Progression</h2>
+  <p class="hint">Built from audience numbers · refreshes every 10s</p>
+  <div class="chord-row" id="chord-row"><span style="color:#aaa;font-size:0.85rem">No numbers yet…</span></div>
+</section>
+
+<div class="divider"></div>
+
+<section>
+  <div class="dash-row">
+    <h2 class="section-title">Guestbook</h2>
+    <button class="ghost-btn" onclick="loadEntries()">↺ Refresh</button>
+  </div>
+  <div id="entry-list" class="entry-list">
+    <div class="spinner"><div class="spin"></div></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+<div style="display:flex;gap:1rem;align-items:center">
+  <button class="switch-btn" onclick="showView('audience')">← Audience view</button>
+  <button class="ghost-btn danger" onclick="clearAll()">Clear all</button>
+</div>
+```
+
+  </main>
+</div>
+
+<script>
+// ── Config ──────────────────────────────────────────────────────────────────
+const BIN_ID  = '6a04d0645d6c3911694c7e45';
+const API_KEY = '$2a$10$6LJFLANANk/azbLaD49saeahGLPTS.xYkwM.jVzAmpCkpDczMIMwa';
+const BIN_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+const SITE_URL = window.location.href.split('?')[0].split('#')[0];
+
+const SCALE = ['C','Dm','Em','F','G','Am','Bdim','C2','Dm2','Em2','F2','G2'];
+const chordMap = n => {
+  const i = parseInt(n);
+  if (isNaN(i)) return '?';
+  return SCALE[((Math.abs(i) - 1) % SCALE.length + SCALE.length) % SCALE.length];
+};
+
+// ── JSONBin helpers ─────────────────────────────────────────────────────────
+async function fetchEntries() {
+  const r = await fetch(BIN_URL + '/latest', {
+    headers: { 'X-Master-Key': API_KEY, 'X-Bin-Meta': 'false' }
+  });
+  if (!r.ok) throw new Error('fetch failed');
+  return await r.json(); // returns the array directly
+}
+
+async function putEntries(entries) {
+  const r = await fetch(BIN_URL, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY },
+    body: JSON.stringify(entries)
+  });
+  if (!r.ok) throw new Error('save failed');
+}
+
+// ── View switching ──────────────────────────────────────────────────────────
+function showView(name) {
+  document.querySelectorAll('.view, .success-screen').forEach(el => {
+    el.classList.remove('active');
+  });
+  if (name === 'success') {
+    document.getElementById('view-success').classList.add('active');
+  } else {
+    document.getElementById('view-' + name).classList.add('active');
+    if (name === 'performer') {
+      renderQR(SITE_URL);
+      document.getElementById('qr-url-text').textContent = SITE_URL;
+      loadEntries();
+    }
+  }
+}
+
+// ── Audience ────────────────────────────────────────────────────────────────
+function previewChord() {
+  const n = document.getElementById('a-number').value;
+  const el = document.getElementById('chord-preview');
+  el.textContent = n && !isNaN(n) ? '→ ' + chordMap(n) : '';
+}
+
+async function submitEntry() {
+  const name    = document.getElementById('a-name').value.trim();
+  const message = document.getElementById('a-message').value.trim();
+  const number  = document.getElementById('a-number').value.trim();
+  const errEl   = document.getElementById('a-error');
+  const btn     = document.getElementById('a-submit');
+
+  errEl.textContent = '';
+  if (!name)              { errEl.textContent = 'Please enter your name.'; return; }
+  if (!number || isNaN(number)) { errEl.textContent = 'Please enter a valid number.'; return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Signing…';
+  try {
+    const entries = await fetchEntries();
+    const newEntry = { id: Date.now(), name, message, number, chord: chordMap(number), timestamp: new Date().toISOString() };
+    await putEntries([newEntry, ...entries]);
+    document.getElementById('success-msg').innerHTML =
+      `Your number <strong>${number}</strong> became the chord <strong>${chordMap(number)}</strong>.`;
+    showView('success');
+  } catch (e) {
+    errEl.textContent = 'Something went wrong. Try again.';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Sign the Guestbook';
+  }
+}
+
+function resetAudience() {
+  document.getElementById('a-name').value = '';
+  document.getElementById('a-message').value = '';
+  document.getElementById('a-number').value = '';
+  document.getElementById('chord-preview').textContent = '';
+  document.getElementById('a-error').textContent = '';
+  showView('audience');
+}
+
+// ── Performer ───────────────────────────────────────────────────────────────
+async function loadEntries() {
+  const listEl = document.getElementById('entry-list');
+  listEl.innerHTML = '<div class="spinner"><div class="spin"></div></div>';
+  try {
+    const entries = await fetchEntries();
+    renderEntries(entries);
+    renderChords(entries);
+    const n = entries.length;
+    document.getElementById('p-count').textContent = n + ' guest' + (n !== 1 ? 's' : '') + ' tonight';
+  } catch {
+    listEl.innerHTML = '<p style="color:#c0392b;font-size:0.82rem;font-family:monospace">Failed to load entries.</p>';
+  }
+}
+
+function renderEntries(entries) {
+  const listEl = document.getElementById('entry-list');
+  if (!entries.length) { listEl.innerHTML = '<p style="color:#aaa;font-size:0.85rem">No entries yet. Share the audience link!</p>'; return; }
+  listEl.innerHTML = entries.map(e => `
+    <div class="entry-card">
+      <div class="entry-header">
+        <span class="entry-name">${esc(e.name)}</span>
+        <span class="entry-chord">${esc(e.chord)}</span>
+      </div>
+      ${e.message ? `<p class="entry-message">${esc(e.message)}</p>` : ''}
+      <p class="entry-meta">#${esc(e.number)} · ${new Date(e.timestamp).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</p>
+    </div>
+  `).join('');
+}
+
+function renderChords(entries) {
+  const row = document.getElementById('chord-row');
+  const chords = entries.slice(0, 8).map(e => e.chord);
+  if (!chords.length) { row.innerHTML = '<span style="color:#aaa;font-size:0.85rem">No numbers yet…</span>'; return; }
+  row.innerHTML = chords.map(c => `<div class="chord-bubble">${esc(c)}</div>`).join('');
+}
+
+async function clearAll() {
+  if (!confirm('Clear all guestbook entries?')) return;
+  await putEntries([]);
+  loadEntries();
+}
+
+function copyLink() {
+  navigator.clipboard.writeText(SITE_URL).then(() => {
+    const btn = event.target;
+    btn.textContent = '✓ Copied';
+    setTimeout(() => btn.textContent = 'Copy link', 2000);
+  });
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Auto-refresh performer view ─────────────────────────────────────────────
+setInterval(() => {
+  if (document.getElementById('view-performer').classList.contains('active')) loadEntries();
+}, 10000);
+
+// ── Pure-SVG QR Code Generator ──────────────────────────────────────────────
+// Full QR spec: byte mode, version 3 (29×29), ECC M, mask 2
+// No external dependencies — renders as inline SVG.
+
+const GF = (() => {
+  const exp = new Uint8Array(512), log = new Uint8Array(256);
+  let x = 1;
+  for (let i = 0; i < 255; i++) {
+    exp[i] = x; log[x] = i;
+    x = x & 0x80 ? (x << 1) ^ 285 : x << 1;
+  }
+  for (let i = 255; i < 512; i++) exp[i] = exp[i - 255];
+  return {
+    mul: (a, b) => a && b ? exp[log[a] + log[b]] : 0,
+    poly(ec) {
+      let g = [1];
+      for (let i = 0; i < ec; i++) {
+        const nx = [1, exp[i]];
+        const r = new Uint8Array(g.length + 1);
+        for (let a = 0; a < g.length; a++)
+          for (let b = 0; b < nx.length; b++)
+            r[a+b] ^= this.mul(g[a], nx[b]);
+        g = Array.from(r);
+      }
+      return g;
+    },
+    rem(data, gen) {
+      const r = [...data];
+      for (let i = 0; i < data.length; i++) {
+        const c = r[i];
+        if (c) for (let j = 1; j < gen.length; j++) r[i+j] ^= this.mul(gen[j], c);
+      }
+      return r.slice(data.length);
+    }
+  };
+})();
+
+function buildQR(text) {
+  const SIZE = 29; // version 3
+  const bytes = Array.from(new TextEncoder().encode(text));
+  const N = bytes.length;
+
+  const bits = [];
+  const push = (v, n) => { for (let i = n-1; i >= 0; i--) bits.push((v>>i)&1); };
+  push(0b0100, 4); push(N, 8);
+  bytes.forEach(b => push(b, 8));
+  push(0, 4);
+  while (bits.length % 8) bits.push(0);
+  const DATA_CAP = 32, PAD = [0xEC, 0x11];
+  const data = [];
+  for (let i = 0; i < bits.length; i += 8) {
+    let v = 0; for (let b = 0; b < 8; b++) v = (v<<1)|(bits[i+b]||0); data.push(v);
+  }
+  while (data.length < DATA_CAP) data.push(PAD[data.length%2?1:0]);
+  const ec = GF.rem([...data, ...new Array(22).fill(0)], GF.poly(22));
+  const stream = [...data, ...ec];
+
+  const M = Array.from({length: SIZE}, () => new Array(SIZE).fill(-1));
+  const F = Array.from({length: SIZE}, () => new Array(SIZE).fill(false));
+  const set = (r,c,v) => { if(r>=0&&r<SIZE&&c>=0&&c<SIZE){M[r][c]=v;} };
+  const mark = (r,c) => { if(r>=0&&r<SIZE&&c>=0&&c<SIZE) F[r][c]=true; };
+
+  const finder = (tr,tc) => {
+    for (let r=-1;r<=7;r++) for (let c=-1;c<=7;c++) {
+      const v = r>=0&&r<=6&&c>=0&&c<=6
+        ? (r===0||r===6||c===0||c===6||(r>=2&&r<=4&&c>=2&&c<=4)) ? 1 : 0 : 0;
+      set(tr+r,tc+c,v); mark(tr+r,tc+c);
+    }
+  };
+  finder(0,0); finder(0,SIZE-7); finder(SIZE-7,0);
+
+  for (let i=6;i<SIZE-6;i++) {
+    set(6,i,i%2===0?1:0); mark(6,i);
+    set(i,6,i%2===0?1:0); mark(i,6);
+  }
+
+  const alignAt = (ar,ac) => {
+    for (let r=-2;r<=2;r++) for (let c=-2;c<=2;c++) {
+      const v = r===-2||r===2||c===-2||c===2||(r===0&&c===0)?1:0;
+      set(ar+r,ac+c,v); mark(ar+r,ac+c);
+    }
+  };
+  alignAt(22,22);
+
+  set(SIZE-8,8,1); mark(SIZE-8,8);
+
+  const fmt = [1,0,1,0,0,0,1,0,0,1,0,0,1,0,1];
+  [[8,0],[8,1],[8,2],[8,3],[8,4],[8,5],[8,7],[8,8],[7,8],[5,8],[4,8],[3,8],[2,8],[1,8],[0,8]]
+    .forEach(([r,c],i)=>{ set(r,c,fmt[i]); mark(r,c); });
+  [[SIZE-1,8],[SIZE-2,8],[SIZE-3,8],[SIZE-4,8],[SIZE-5,8],[SIZE-6,8],[SIZE-7,8],
+   [8,SIZE-8],[8,SIZE-7],[8,SIZE-6],[8,SIZE-5],[8,SIZE-4],[8,SIZE-3],[8,SIZE-2],[8,SIZE-1]]
+    .forEach(([r,c],i)=>{ set(r,c,fmt[i]); mark(r,c); });
+
+  let bi = 0;
+  const allBits = stream.flatMap(b => [7,6,5,4,3,2,1,0].map(i=>(b>>i)&1));
+  for (let right=SIZE-1;right>=1;right-=2) {
+    if (right===6) right=5;
+    for (let vert=0;vert<SIZE;vert++) {
+      const row=(Math.floor((SIZE-1-right)/2)%2===0)?SIZE-1-vert:vert;
+      for (let dx=0;dx<2;dx++) {
+        const col=right-dx;
+        if (!F[row][col]&&bi<allBits.length) {
+          const mask=((Math.floor(row/2)+Math.floor(col/3))%2===0)?1:0;
+          M[row][col]=allBits[bi++]^mask;
+        }
+      }
+    }
+  }
+  for (let r=0;r<SIZE;r++) for (let c=0;c<SIZE;c++) if(M[r][c]===-1) M[r][c]=0;
+  return M;
+}
+
+function renderQR(url) {
+  const CELL = 4, QUIET = 4, SIZE = 29;
+  const matrix = buildQR(url);
+  const total = SIZE * CELL + QUIET * 2;
+  let rects = '';
+  for (let r=0;r<SIZE;r++) for (let c=0;c<SIZE;c++) {
+    if (matrix[r][c]) rects += `<rect x="${QUIET+c*CELL}" y="${QUIET+r*CELL}" width="${CELL}" height="${CELL}" fill="#1a1a18"/>`;
+  }
+  const svg = `<svg width="${total}" height="${total}" viewBox="0 0 ${total} ${total}" xmlns="http://www.w3.org/2000/svg">
+    <rect width="${total}" height="${total}" fill="#faf8f4"/>
+    ${rects}
+  </svg>`;
+  document.getElementById('qr-container').innerHTML = svg;
+}
+</script>
+
+</body>
+</html>
