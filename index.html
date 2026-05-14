@@ -183,9 +183,11 @@ function fetchEntries() {
   return fetch(BIN_URL + '/latest', {
     headers: { 'X-Master-Key': API_KEY, 'X-Bin-Meta': 'false' }
   }).then(function(res) {
+    console.log('FETCH STATUS:', res.status);
     if (!res.ok) return res.text().then(function(t) { throw new Error('HTTP ' + res.status + ' - ' + t); });
     return res.json();
   }).then(function(data) {
+    console.log('FETCH DATA:', JSON.stringify(data));
     if (Array.isArray(data)) return data;
     if (data && Array.isArray(data.items)) return data.items;
     if (data && Array.isArray(data.record)) return data.record;
@@ -235,12 +237,12 @@ function submitEntry() {
   fetchEntries().then(function(entries) {
     var entry = { id: Date.now(), name: name, message: message, number: number, chord: chordMap(number), timestamp: new Date().toISOString() };
     return putEntries([entry].concat(entries));
-  }).then(function() {
+  }).then(function() { console.log('PUT OK'); 
     document.getElementById('success-msg').innerHTML =
       'Your number <strong>' + number + '</strong> became the chord <strong>' + chordMap(number) + '</strong>.';
     showView('success');
   }).catch(function(e) {
-    errEl.textContent = 'Could not save: ' + e.message;
+    console.error('SUBMIT ERR:', e); errEl.textContent = 'Could not save: ' + e.message;
   }).finally(function() {
     btn.disabled = false; btn.textContent = 'Sign the Guestbook';
   });
